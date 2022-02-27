@@ -9,4 +9,15 @@
     tools:context=".EditActivity">
 
 
+    <ImageView
+        android:id="@+id/edit_preview"
+        android:layout_width="match_parent"
+        android:layout_height="512dp"
+        tools:srcCompat="@tools:sample/avatars" />
+
+    <Button
+        android:id="@+id/crop_image"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:text="@string/crop_imageit" />
 </LinearLayout>

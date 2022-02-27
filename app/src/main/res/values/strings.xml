@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ImageEditorTask</string>
+    <string name="crop_imageit">Crop Image</string>
 </resources>

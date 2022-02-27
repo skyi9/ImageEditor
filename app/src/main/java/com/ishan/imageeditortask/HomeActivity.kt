@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -15,16 +16,14 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.drawable.toBitmap
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStream
+import java.io.*
 import java.util.*
 
 class HomeActivity : AppCompatActivity() {
@@ -34,7 +33,8 @@ class HomeActivity : AppCompatActivity() {
         private const val GALLERY = 2
         private const val IMAGE_DIRECTORY = "ImageEditorTask"
     }
-    lateinit var preview : ImageView
+
+    lateinit var preview: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,13 +53,26 @@ class HomeActivity : AppCompatActivity() {
         }
 
         val edit = findViewById<FloatingActionButton>(R.id.edit)
+        // TODO(step 2: sending image to the next activity)
         edit.setOnClickListener {
-            val intent = Intent(this , EditActivity::class.java)
-
-            startActivity(intent)
+            if (preview.drawable != null) {
+                val intent = Intent(this, EditActivity::class.java)
+                val bitmap: Bitmap = preview.drawable.toBitmap()
+                val bs = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bs)
+                intent.putExtra("byteArray", bs.toByteArray())
+                startActivity(intent)
+            } else {
+                Toast.makeText(
+                    applicationContext,
+                    "pls Choose or Click an Image",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
 
     }
+
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -121,6 +134,7 @@ class HomeActivity : AppCompatActivity() {
             }).onSameThread()
             .check()
     }
+
     private fun takePhotoFromCamera() {
 
         Dexter.withActivity(this)
@@ -148,35 +162,35 @@ class HomeActivity : AppCompatActivity() {
             .check()
     }
 
-    private fun saveImageToInternalStorage(bitmap: Bitmap) : Uri {
+    private fun saveImageToInternalStorage(bitmap: Bitmap): Uri {
         val wrapper = ContextWrapper(applicationContext)
-        var file = wrapper.getDir(IMAGE_DIRECTORY , Context.MODE_PRIVATE)
-        file = File(file , " ${UUID.randomUUID()}.jpg")
+        var file = wrapper.getDir(IMAGE_DIRECTORY, Context.MODE_PRIVATE)
+        file = File(file, " ${UUID.randomUUID()}.jpg")
         try {
-            val stream : OutputStream = FileOutputStream(file)
-            bitmap.compress(Bitmap.CompressFormat.JPEG , 100 , stream)
+            val stream: OutputStream = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
             stream.flush()
             stream.close()
-        }catch ( e : IOException){
+        } catch (e: IOException) {
             e.printStackTrace()
         }
         return Uri.parse(file.absolutePath)
     }
 
-     private fun showRationalDialogForPermissions() {
+    private fun showRationalDialogForPermissions() {
         AlertDialog.Builder(this)
             .setMessage("permission de bsdk")
-            .setPositiveButton("Go to Settings"){_,_ ->
+            .setPositiveButton("Go to Settings") { _, _ ->
                 try {
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                    val uri = Uri.fromParts("package" , packageName , null)
+                    val uri = Uri.fromParts("package", packageName, null)
                     intent.data = uri
                     startActivity(intent)
-                }catch (e : Exception ){
+                } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
-            .setNegativeButton("Cancel"){ dialog , _ ->
+            .setNegativeButton("Cancel") { dialog, _ ->
                 dialog.dismiss()
             }.show()
     }
